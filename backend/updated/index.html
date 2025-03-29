@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Detection</title>
+    <script>
+        function uploadImage() {
+            const fileInput = document.getElementById('imageUpload');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select an image first");
+                return;
+            }
+            const formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/process_image", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("foodName").innerText = data.food;
+                document.getElementById("substitute").innerText = data.substitute;
+                document.getElementById("goToPage2").href = `2.html?ingredient=${data.food}&substitute=${data.substitute}`;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</head>
+<body>
+    <h1>Upload an Image for Food Detection</h1>
+    <input type="file" id="imageUpload">
+    <button onclick="uploadImage()">Detect Food</button>
+    <p><strong>Detected Food:</strong> <span id="foodName">N/A</span></p>
+    <p><strong>Best Substitute:</strong> <span id="substitute">N/A</span></p>
+    <a id="goToPage2" href="2.html">Go to Next Page</a>
+</body>
+</html>

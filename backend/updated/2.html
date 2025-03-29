@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Image - Food Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F4F6F7;
+            text-align: center;
+            margin: 0;
+        }
+        .container {
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #3498DB;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 6px;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #2980B9;
+        }
+        #imagePreview {
+            max-width: 300px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Upload an Image</h1>
+        <input type="file" id="imageUpload" accept="image/*">
+        <button class="btn" onclick="document.getElementById('imageUpload').click()">Select Image</button>
+        <img id="imagePreview" style="display: none;">
+        <br><br>
+        <button class="btn" onclick="uploadImage()">Detect Food</button>
+    </div>
+
+    <script>
+        document.getElementById('imageUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageUpload');
+            if (fileInput.files.length === 0) {
+                alert("Please select an image first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("image", fileInput.files[0]);
+
+            try {
+                const response = await fetch("/detect", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.detected_food) {
+                    window.location.href = `3.html?ingredient=${encodeURIComponent(data.detected_food)}`;
+                } else {
+                    alert("No food detected. Try another image.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error detecting food.");
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Substitution & Allergy Detection</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #F4F6F7;
+            text-align: center;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        input,
+        button {
+            padding: 12px;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        .search-btn {
+            background-color: #1ABC9C;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+        }
+
+        .search-btn:hover {
+            background-color: #16A085;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Food Substitution & Allergy Detection</h1>
+
+        <!-- Text Input for Food Item -->
+        <input type="text" id="foodInput" placeholder="Enter a food item...">
+
+        <!-- File Input for Image Upload -->
+        <input type="file" id="imageInput" accept="image/*">
+
+        <!-- Search Button -->
+        <button class="search-btn" type="submit" onclick="fetchFoodData()">Find Alternatives</button>
+    </div>
+
+    <script>
+ function fetchFoodData() {
+    let foodItem = document.getElementById("foodInput").value.trim();
+    let imageFile = document.getElementById("imageInput").files[0];
+
+    if (!foodItem && !imageFile) {
+        alert("Please enter a food item or upload an image.");
+        return;
+    }
+
+    if (foodItem) {
+        fetch("http://127.0.0.1:5000/substitute", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ingredient: foodItem })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            let queryString = new URLSearchParams(data).toString();
+            window.location.href = `3.html?${queryString}`;
+        })
+        .catch(error => console.error("Error fetching data:", error));
+    } 
+    else if (imageFile) {
+        let formData = new FormData();
+        formData.append("file", imageFile);
+
+        fetch("http://127.0.0.1:5000/predict", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Response from backend:", data);
+
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            if (!data.detected_vegetable || !data.substitute) {
+                alert("No valid detection found.");
+                return;
+            }
+            // Ensure substitute is a string, and encode it
+            let detected = encodeURIComponent(data.detected_vegetable);
+            let substitutes = encodeURIComponent(JSON.stringify(data.substitute));
+
+            console.log(`3.html?ingredient=${detected}&substitute=${substitutes}`);
+            window.location.href = `3.html?ingredient=${detected}&substitute=${substitutes}`;
+        })
+        .catch(error => console.error("Error fetching data:", error));
+    }
+}
+    </script>
+
+
+</body>
+
+</html>

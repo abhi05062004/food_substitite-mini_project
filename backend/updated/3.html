@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food & Health Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F4F6F7;
+            text-align: center;
+            margin: 0;
+        }
+        .container {
+            margin: 20px auto;
+            width: 80%;
+            max-width: 800px;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 20px auto;
+        }
+        .btn {
+            background-color: #3498DB;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 6px;
+            transition: 0.3s;
+            margin: 10px;
+        }
+        .btn:hover {
+            background-color: #2980B9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Food & Health Assistant</h1>
+        
+        <div class="box">
+            <h2>Food Information</h2>
+            <p><strong>Detected Food:</strong> <span id="foodName">Loading...</span></p>
+            <p><strong>Best Substitute:</strong> <span id="substitute">Loading...</span></p>
+        </div>
+
+        <button class="btn" onclick="fetchSubstitute()">🔄 Find Substitute</button>
+        <button class="btn" onclick="showRecipes()">🍽 Suggest Recipes</button>
+
+        <div class="box" id="recipeSection" style="display: none;">
+            <h2>Suggested Recipes</h2>
+            <ul id="recipeList"></ul>
+        </div>
+    </div>
+
+    <script>
+        function getQueryParams() {
+            let params = new URLSearchParams(window.location.search);
+            return {
+                ingredient: params.get("ingredient"),
+            };
+        }
+
+        function updateFoodDetails() {
+            let foodData = getQueryParams();
+            document.getElementById("foodName").innerText = foodData.ingredient || "N/A";
+        }
+
+        async function fetchSubstitute() {
+            let food = document.getElementById("foodName").innerText;
+            if (food === "N/A") {
+                alert("No food detected.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/substitute?food=${encodeURIComponent(food)}`);
+                const data = await response.json();
+                document.getElementById("substitute").innerText = data.substitute || "No substitute found.";
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error fetching substitute.");
+            }
+        }
+
+        async function showRecipes() {
+            let food = document.getElementById("foodName").innerText;
+            if (food === "N/A") {
+                alert("No food detected.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/recipes?food=${encodeURIComponent(food)}`);
+                const data = await response.json();
+                let recipeList = document.getElementById("recipeList");
+                recipeList.innerHTML = "";
+                data.recipes.forEach(recipe => {
+                    let li = document.createElement("li");
+                    li.innerText = recipe;
+                    recipeList.appendChild(li);
+                });
+                document.getElementById("recipeSection").style.display = "block";
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error fetching recipes.");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", updateFoodDetails);
+    </script>
+
+</body>
+</html>
